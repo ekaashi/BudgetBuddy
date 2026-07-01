@@ -8,6 +8,12 @@ A lightweight personal expense tracker built with Flask, SQLite, and Tailwind CS
 
 ---
 
+## 🌐 Live Demo
+
+🔗 **Live Application:** [https://your-render-app.onrender.com](https://budgetbuddy-5mnk.onrender.com/)
+
+---
+
 ## ✨ Features
 
 - **Track expenses** — add, edit, and delete expenses with a description, amount, category, and date.
