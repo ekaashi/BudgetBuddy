@@ -1,52 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Edit Expense · Expense Tracker{% endblock %}
+{% block title %}Edit Expense · Budget Buddy{% endblock %}
 
 {% block content %}
-  <h1 class="text-3xl font-semibold mb-2">Edit Expense</h1>
-  <p class="text-slate-400 mb-6">Update the fields and save your changes.</p>
+  <div class="mx-auto max-w-xl">
+    <a href="{{ url_for('index') }}" class="mb-4 inline-flex items-center gap-1 text-xs text-slate-400 hover:text-brand">
+      ← Back to dashboard
+    </a>
 
-  <section class="max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-4">
-    <form method="post"
-      action="{{ url_for('edit', expense_id=expense.id) }}"class="space-y-3">
-      <label class="block text-sm">
-        <span class="mb-1 block text-slate-300">Description</span>
-        <input name="description"
-               value="{{ expense.description }}"
-               class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100" />
-      </label>
+    <h1 class="text-3xl font-bold text-white">Edit Expense</h1>
+    <p class="mb-6 mt-2 text-slate-400">Update the fields below and save your changes.</p>
 
-      <div class="grid grid-cols-2 gap-3">
+    <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-soft">
+      <form method="post" action="{{ url_for('edit', expense_id=expense.id) }}" class="space-y-4">
         <label class="block text-sm">
-          <span class="mb-1 block text-slate-300">Amount</span>
-          <input type="number" step="0.01" min="0.01" name="amount"
-                 value="{{ '%.2f'|format(expense.amount) }}"
-                 class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100" />
+          <span class="mb-1 block text-slate-400">Description</span>
+          <input
+            name="description"
+            value="{{ expense.description }}"
+            class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1 block text-slate-300">Date</span>
-          <input type="date" name="date"
-                 value="{{ expense.date.strftime('%Y-%m-%d') if expense.date else today }}"
-                 class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100" />
-        </label>
-      </div>
 
-      <label class="block text-sm">
-        <span class="mb-1 block text-slate-300">Category</span>
-        <select name="category"
-                class="w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100">
-          {% for c in categories %}
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block text-sm">
+            <span class="mb-1 block text-slate-400">Amount</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              name="amount"
+              value="{{ '%.2f'|format(expense.amount) }}"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1 block text-slate-400">Date</span>
+            <input
+              type="date"
+              name="date"
+              value="{{ expense.date.strftime('%Y-%m-%d') if expense.date else today }}"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            />
+          </label>
+        </div>
+
+        <label class="block text-sm">
+          <span class="mb-1 block text-slate-400">Category</span>
+          <select
+            name="category"
+            class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          >
+            {% for c in categories %}
             <option value="{{ c }}" {% if expense.category == c %}selected{% endif %}>{{ c }}</option>
-          {% endfor %}
-        </select>
-      </label>
+            {% endfor %}
+          </select>
+        </label>
 
-      <div class="flex items-center gap-2">
-        <button class="rounded-xl bg-brand/20 hover:bg-brand/30 text-brand px-4 py-2 border border-brand/30"
-                type="submit">Save Changes</button>
-
-        <a class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 border border-slate-700"
-           href="{{ url_for('index') }}">Cancel</a>
-      </div>
-    </form>
-  </section>
+        <div class="flex items-center gap-2 pt-2">
+          <button
+            class="rounded-xl border border-brand/30 bg-brand/20 px-4 py-2 font-semibold text-brand transition-colors hover:bg-brand/30"
+            type="submit"
+          >
+            Save Changes
+          </button>
+          <a
+            class="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-slate-200 transition-colors hover:bg-slate-700"
+            href="{{ url_for('index') }}"
+          >Cancel</a>
+        </div>
+      </form>
+    </section>
+  </div>
 {% endblock %}

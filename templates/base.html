@@ -5,54 +5,274 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Expense Tracker Lite{% endblock %}</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: "class",
-        theme: { extend: { colors: { brand: { DEFAULT: "#38bdf8" } } } },
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui"] },
+            colors: {
+              brand: { DEFAULT: "#38bdf8", dark: "#0ea5e9" },
+            },
+            boxShadow: {
+              soft: "0 10px 30px -12px rgba(0,0,0,0.55)",
+            },
+          },
+        },
       };
     </script>
-      <script src = "https://cdn.jsdelivr.net/npm/charts.js"></script>
+
+    <!-- Chart.js (loaded once, here only) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+      }
+      ::selection {
+        background: rgba(56, 189, 248, 0.35);
+      }
+      /* subtle custom scrollbar for the table */
+      .thin-scroll::-webkit-scrollbar { height: 8px; }
+      .thin-scroll::-webkit-scrollbar-thumb {
+        background: #334155; border-radius: 9999px;
+      }
+    </style>
+
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="h-full bg-slate-900 text-slate-100">
-   <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur">
-  <div class="mx-auto max-w-6xl px-4 py-5 flex items-center justify-between">
-
-    <a href="{{ url_for('index') }}" class="flex items-center gap-3">
-      <span class="text-3xl">💰</span>
-
-      <div>
-        <h1 class="text-2xl font-bold text-brand">Budget Buddy</h1>
-        <p class="text-xs text-slate-400">
-          Smart Expense Tracking & Analytics
-        </p>
+  <body class="h-full bg-slate-950 text-slate-100 antialiased">
+    <header class="sticky top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
+      <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+        <a href="{{ url_for('index') }}" class="flex items-center gap-3 group">
+          <span
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-indigo-500 text-lg shadow-soft"
+          >💰</span>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-white transition-colors group-hover:text-brand">
+              Budget Buddy
+            </h1>
+            <p class="text-xs text-slate-500">Smart Expense Tracking &amp; Analytics</p>
+          </div>
+        </a>
       </div>
-    </a>
-
-  </div>
-</header>
+    </header>
 
     <main class="mx-auto max-w-6xl px-4 py-8">
       <!-- Flash messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="space-y-2 mb-4">
-        {% for category, message in messages %}
-        <div
-          class="ro unded-xl px-4 py-3 text-sm {% if category == 'success' %} bg-emerald-500/10 text-emerald-300 border border-emerald-400/20 {% elif category == 'error' %} bg-rose-500/10 text-rose-300 border border-rose-400/20 {% else %} bg-slate-800 text-slate-200 border border-slate-700 {% endif %}"
-        >
-          {{ message }}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="space-y-2 mb-6">
+          {% for category, message in messages %}
+          <div
+            class="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm
+              {% if category == 'success' %} border-emerald-400/20 bg-emerald-500/10 text-emerald-300
+              {% elif category == 'error' %} border-rose-400/20 bg-rose-500/10 text-rose-300
+              {% else %} border-slate-700 bg-slate-800/60 text-slate-200 {% endif %}"
+          >
+            <span aria-hidden="true">
+              {% if category == 'success' %}✅{% elif category == 'error' %}⚠️{% else %}ℹ️{% endif %}
+            </span>
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
-      {% endif %} {% endwith %} {% block content %}{% endblock %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
     </main>
 
-    <footer class="mx-auto max-w-6xl px-4 pb-8 text-xs text-slate-500">
-      Built with Flask & Tailwind
+    <footer class="mx-auto mt-4 max-w-6xl border-t border-slate-900 px-4 pb-10 pt-4 text-xs text-slate-600">
+      Built with Flask &amp; Tailwind
     </footer>
+
+    <!-- AI Chat Widget -->
+    <div id="bb-chat-root" class="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+      <!-- Panel -->
+      <div
+        id="bb-chat-panel"
+        class="hidden w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-soft"
+        style="height: 32rem"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-indigo-500 text-sm">🤖</span>
+            <div>
+              <p class="text-sm font-semibold text-white">Budget Buddy AI</p>
+              <p class="text-[11px] text-slate-500">Ask me to add, find, or summarize expenses</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="bb-chat-clear" title="Clear chat" class="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-800 hover:text-slate-300">🗑</button>
+            <button id="bb-chat-close" title="Close" class="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-800 hover:text-slate-300">✕</button>
+          </div>
+        </div>
+
+        <div id="bb-chat-messages" class="thin-scroll flex-1 space-y-3 overflow-y-auto px-4 py-4">
+          <div class="flex">
+            <div class="max-w-[85%] rounded-2xl rounded-bl-sm border border-slate-800 bg-slate-800/70 px-3 py-2 text-sm text-slate-200">
+              Hi! I can add expenses, look things up, or summarize your spending. Try:
+              <span class="mt-1 block text-slate-400">"spent 450 on groceries yesterday" or "how much did I spend on food this month?"</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="bb-chat-typing" class="hidden px-4 pb-1 text-xs text-slate-500">Budget Buddy AI is thinking…</div>
+
+        <form id="bb-chat-form" class="flex items-center gap-2 border-t border-slate-800 p-3">
+          <input
+            id="bb-chat-input"
+            type="text"
+            autocomplete="off"
+            placeholder="e.g. spent 200 on lunch today"
+            class="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          />
+          <button
+            type="submit"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-brand/30 bg-brand/20 text-brand transition-colors hover:bg-brand/30"
+          >➤</button>
+        </form>
+      </div>
+
+      <!-- Toggle bubble -->
+      <button
+        id="bb-chat-toggle"
+        class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-indigo-500 text-2xl text-white shadow-soft transition-transform hover:scale-105"
+        title="Chat with Budget Buddy AI"
+      >💬</button>
+    </div>
+
+    <script>
+      (function () {
+        const STORAGE_API_HISTORY = "bb_chat_api_history";
+        const STORAGE_DISPLAY_HISTORY = "bb_chat_display_history";
+
+        const panel = document.getElementById("bb-chat-panel");
+        const toggleBtn = document.getElementById("bb-chat-toggle");
+        const closeBtn = document.getElementById("bb-chat-close");
+        const clearBtn = document.getElementById("bb-chat-clear");
+        const form = document.getElementById("bb-chat-form");
+        const input = document.getElementById("bb-chat-input");
+        const messagesEl = document.getElementById("bb-chat-messages");
+        const typingEl = document.getElementById("bb-chat-typing");
+
+        function loadJSON(key, fallback) {
+          try {
+            const raw = sessionStorage.getItem(key);
+            return raw ? JSON.parse(raw) : fallback;
+          } catch (e) {
+            return fallback;
+          }
+        }
+        function saveJSON(key, value) {
+          try { sessionStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+        }
+
+        let apiHistory = loadJSON(STORAGE_API_HISTORY, []);
+        let displayHistory = loadJSON(STORAGE_DISPLAY_HISTORY, []);
+
+        function renderBubble(role, text) {
+          const wrap = document.createElement("div");
+          wrap.className = "flex " + (role === "user" ? "justify-end" : "justify-start");
+          const bubble = document.createElement("div");
+          bubble.className =
+            "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm " +
+            (role === "user"
+              ? "rounded-br-sm bg-brand/20 border border-brand/30 text-slate-100"
+              : "rounded-bl-sm border border-slate-800 bg-slate-800/70 text-slate-200");
+          bubble.textContent = text;
+          wrap.appendChild(bubble);
+          messagesEl.appendChild(wrap);
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function renderAll() {
+          messagesEl.innerHTML = "";
+          if (displayHistory.length === 0) {
+            const wrap = document.createElement("div");
+            wrap.className = "flex";
+            wrap.innerHTML =
+              '<div class="max-w-[85%] rounded-2xl rounded-bl-sm border border-slate-800 bg-slate-800/70 px-3 py-2 text-sm text-slate-200">' +
+              "Hi! I can add expenses, look things up, or summarize your spending. Try:" +
+              '<span class="mt-1 block text-slate-400">"spent 450 on groceries yesterday" or "how much did I spend on food this month?"</span></div>';
+            messagesEl.appendChild(wrap);
+            return;
+          }
+          displayHistory.forEach((m) => renderBubble(m.role, m.text));
+        }
+
+        renderAll();
+
+        toggleBtn.addEventListener("click", () => {
+          panel.classList.toggle("hidden");
+          panel.classList.toggle("flex");
+          if (!panel.classList.contains("hidden")) input.focus();
+        });
+        closeBtn.addEventListener("click", () => {
+          panel.classList.add("hidden");
+          panel.classList.remove("flex");
+        });
+        clearBtn.addEventListener("click", () => {
+          apiHistory = [];
+          displayHistory = [];
+          saveJSON(STORAGE_API_HISTORY, apiHistory);
+          saveJSON(STORAGE_DISPLAY_HISTORY, displayHistory);
+          renderAll();
+        });
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const text = input.value.trim();
+          if (!text) return;
+          input.value = "";
+          input.disabled = true;
+          typingEl.classList.remove("hidden");
+
+          displayHistory.push({ role: "user", text });
+          saveJSON(STORAGE_DISPLAY_HISTORY, displayHistory);
+          renderBubble("user", text);
+
+          try {
+            const res = await fetch("{{ url_for('chat') }}", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text, history: apiHistory }),
+            });
+            const data = await res.json();
+
+            apiHistory = data.history || apiHistory;
+            saveJSON(STORAGE_API_HISTORY, apiHistory);
+
+            const reply = data.reply || "Sorry, something went wrong.";
+            displayHistory.push({ role: "assistant", text: reply });
+            saveJSON(STORAGE_DISPLAY_HISTORY, displayHistory);
+            renderBubble("assistant", reply);
+
+            const dataChangingActions = ["add_expense", "update_expense", "delete_expense"];
+            const changedData = (data.actions || []).some((a) => dataChangingActions.includes(a));
+            if (changedData) {
+              setTimeout(() => location.reload(), 900);
+            }
+          } catch (err) {
+            renderBubble("assistant", "Sorry, I couldn't reach the server. Please try again.");
+          } finally {
+            input.disabled = false;
+            typingEl.classList.add("hidden");
+            input.focus();
+          }
+        });
+      })();
+    </script>
 
     {% block body_end %}{% endblock %}
   </body>
